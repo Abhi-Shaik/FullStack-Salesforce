@@ -3,7 +3,7 @@ import { runWithAmplifyServerContext } from '@/src/utils/amplify-server';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { cookies } from 'next/headers';
 import { login, logout } from './actions';
-
+// cc
 // This is a Server Component, so it runs on the server.
 export default async function Home() {
   
