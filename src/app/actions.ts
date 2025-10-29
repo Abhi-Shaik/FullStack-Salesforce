@@ -5,6 +5,7 @@ import { runWithAmplifyServerContext } from '@/src/utils/amplify-server';
 import { signIn, signOut } from 'aws-amplify/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string;
@@ -15,7 +16,7 @@ export async function login(formData: FormData) {
 
   try {
     const result = await runWithAmplifyServerContext({
-      nextServerContext: null,
+      nextServerContext: { cookies },
       operation: async () => {
         console.log('🔐 Calling Amplify signIn...');
         
@@ -66,7 +67,7 @@ export async function login(formData: FormData) {
 export async function logout() {
   try {
     await runWithAmplifyServerContext({
-      nextServerContext: null,
+      nextServerContext: { cookies },
       operation: async () => {
         await signOut();
         console.log('Sign-out successful');
