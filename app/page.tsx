@@ -8,13 +8,15 @@ export default async function Home() {
   
   // 1. Check if the user is authenticated
   const user = await runWithAmplifyServerContext({
-    // We must pass the cookies from next/headers
-    nextServerContext: { cookies }, 
-    operation: () => getCurrentUser()
-  }).catch(() => {
-    // This catches errors if the user is not logged in
-    console.log("No authenticated user.");
-    return null;
+    nextServerContext: { cookies },
+    operation: async () => {
+      try {
+        return await getCurrentUser();
+      } catch (error) {
+        console.log("No authenticated user:", error);
+        return null;
+      }
+    }
   });
 
   // 2. Render UI based on auth state

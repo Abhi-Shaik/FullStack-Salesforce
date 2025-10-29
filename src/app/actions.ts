@@ -10,9 +10,10 @@ export async function login(formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
+  console.log('Login attempt for:', email);
+
   try {
-    // This function automatically uses secure, HttpOnly cookies
-    await runWithAmplifyServerContext({
+    const result = await runWithAmplifyServerContext({
       nextServerContext: null,
       operation: async () => {
         const { isSignedIn, nextStep } = await signIn({
@@ -20,17 +21,27 @@ export async function login(formData: FormData) {
           password,
         });
         
-        if (isSignedIn) {
-          console.log("Sign-in successful");
-        } else {
+        console.log('Sign-in result:', { isSignedIn, nextStep });
+        
+        if (!isSignedIn) {
           console.log("Additional steps required:", nextStep);
+          throw new Error('Additional authentication steps required');
         }
-      },
+        
+        console.log("Sign-in successful for:", email);
+        return { success: true };
+      }
     });
+    
+    if (!result.success) {
+      throw new Error('Sign in failed');
+    }
   } catch (error) {
     console.error('Error signing in:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
-    throw new Error(errorMessage);
+    console.error('Full error:', error);
+    // Don't throw - just log for now to see what's happening
+    console.error('Login failed for:', email, 'Error:', errorMessage);
   }
   
   revalidatePath('/'); // Refresh the page to show the new auth state
@@ -43,7 +54,8 @@ export async function logout() {
       nextServerContext: null,
       operation: async () => {
         await signOut();
-      },
+        console.log('Sign-out successful');
+      }
     });
   } catch (error) {
     console.error('Error signing out:', error);
