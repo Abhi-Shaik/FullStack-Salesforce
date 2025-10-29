@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Amplify } from 'aws-amplify';
+import outputs from '../amplify_outputs.json';
+
+// Configure Amplify for SSR
+Amplify.configure(outputs, { ssr: true });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
