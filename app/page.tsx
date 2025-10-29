@@ -2,22 +2,29 @@ import { runWithAmplifyServerContext } from '@/src/utils/amplify-server';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { cookies } from 'next/headers';
 import { login, logout } from '@/src/app/actions';
+import { LoginForm } from './LoginForm';
 
 // This is a Server Component, so it runs on the server.
 export default async function Home() {
+  
+  console.log('🔍 Page rendering - checking authentication...');
   
   // 1. Check if the user is authenticated
   const user = await runWithAmplifyServerContext({
     nextServerContext: { cookies },
     operation: async () => {
       try {
-        return await getCurrentUser();
-      } catch (error) {
-        console.log("No authenticated user:", error);
+        const currentUser = await getCurrentUser();
+        console.log('✅ User authenticated:', currentUser.username || currentUser.userId);
+        return currentUser;
+      } catch {
+        console.log("❌ No authenticated user");
         return null;
       }
     }
   });
+  
+  console.log('🎯 Authentication state:', user ? 'LOGGED IN' : 'LOGGED OUT');
 
   // 2. Render UI based on auth state
   return (
@@ -48,56 +55,7 @@ export default async function Home() {
             </form>
           </div>
         ) : (
-          <div className="space-y-6">
-            <form action={login} className="space-y-5">
-              <div>
-                <label 
-                  htmlFor="email" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Email Address
-                </label>
-                <input 
-                  name="email" 
-                  id="email"
-                  type="email" 
-                  required 
-                  placeholder="Enter your email"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white text-gray-900"
-                />
-              </div>
-
-              <div>
-                <label 
-                  htmlFor="password" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Password
-                </label>
-                <input 
-                  name="password" 
-                  id="password"
-                  type="password" 
-                  required 
-                  placeholder="Enter your password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white text-gray-900"
-                />
-              </div>
-
-              <button 
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
-              >
-                Sign In
-              </button>
-            </form>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p className="text-sm text-amber-800">
-                <strong>Note:</strong> Create a user in your Cognito User Pool via AWS Console before signing in.
-              </p>
-            </div>
-          </div>
+          <LoginForm onLogin={login} />
         )}
       </div>
     </main>

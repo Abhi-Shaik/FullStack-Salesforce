@@ -10,40 +10,55 @@ export async function login(formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
-  console.log('Login attempt for:', email);
+  console.log('🔐 SERVER ACTION: Login attempt for:', email);
+  console.log('🔐 Password length:', password?.length || 0);
 
   try {
     const result = await runWithAmplifyServerContext({
       nextServerContext: null,
       operation: async () => {
+        console.log('🔐 Calling Amplify signIn...');
+        
         const { isSignedIn, nextStep } = await signIn({
           username: email,
           password,
         });
         
-        console.log('Sign-in result:', { isSignedIn, nextStep });
+        console.log('🔐 Sign-in result:', { 
+          isSignedIn, 
+          nextStep: nextStep?.signInStep || 'NONE' 
+        });
         
         if (!isSignedIn) {
-          console.log("Additional steps required:", nextStep);
-          throw new Error('Additional authentication steps required');
+          console.log("⚠️  Additional steps required:", nextStep);
+          throw new Error(`Additional authentication steps required: ${nextStep?.signInStep}`);
         }
         
-        console.log("Sign-in successful for:", email);
+        console.log("✅ Sign-in successful for:", email);
         return { success: true };
       }
     });
     
     if (!result.success) {
+      console.error('❌ Sign in result was not successful');
       throw new Error('Sign in failed');
     }
+    
+    console.log('✅ Login action completed successfully, redirecting...');
   } catch (error) {
-    console.error('Error signing in:', error);
+    console.error('❌ ERROR in login action:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
-    console.error('Full error:', error);
-    // Don't throw - just log for now to see what's happening
-    console.error('Login failed for:', email, 'Error:', errorMessage);
+    console.error('❌ Error details:', {
+      message: errorMessage,
+      type: error instanceof Error ? error.constructor.name : typeof error,
+      email: email
+    });
+    
+    // Re-throw the error so the client can display it
+    throw new Error(errorMessage);
   }
   
+  console.log('🔄 Revalidating path and redirecting...');
   revalidatePath('/'); // Refresh the page to show the new auth state
   redirect('/'); // Redirect to home page
 }
