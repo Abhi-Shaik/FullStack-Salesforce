@@ -1,16 +1,11 @@
 // src/app/actions.ts
 'use server';
 
-import { Amplify } from 'aws-amplify';
 import { runWithAmplifyServerContext } from '@/src/utils/amplify-server';
 import { signIn, signOut } from 'aws-amplify/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import outputs from '../../amplify_outputs.json';
-
-// Ensure Amplify is configured
-Amplify.configure(outputs, { ssr: true });
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string;
